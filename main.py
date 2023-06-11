@@ -1,63 +1,64 @@
 from PIL import Image
 
+
 class monitor():
-    def __init__(self, width_cm, height_cm, width_px, height_px):
-        self.above = None
-        self.below = None
-        self.left = None
-        self.right = None
+    def __init__(self, width_cm, height_cm, width_px, height_px, total_id):
+        self.links = {
+            'top': None,
+            'bottom': None,
+            'left': None,
+            'right': None
+        }
+        self.id = total_id
 
         self.width = width_cm
         self.height = height_cm
         self.res_x = width_px
         self.res_y = height_px
-        return
+
+        print("new monitor created with id:", self.id)
+
+    def link_monitor(self, monitor, direction):
+        self.links[direction] = monitor
+
+    def get_linked(self, direction):
+        return self.links[direction]
 
 
 class monitor_config():
     def __init__(self) -> None:
-        self.anchor = None
-        # self.direction = {'up': 0, 'down': 1, 'left': 2, 'right': 3}
+        self.monitors = {}
         pass
 
-        # wow this is some really bad code but dw ill totally not forget and fix this
-    def show_config(self):
-        print('ANCR->', self.anchor.res_x, self.anchor.res_y)
-        if self.anchor.above:
-            print('ABOV->', self.anchor.above.res_x, self.anchor.above.res_y)
-        if self.anchor.below:
-            print('BELW->', self.anchor.below.res_x, self.anchor.below.res_y)
-        if self.anchor.left:
-            print('LEFT->', self.anchor.left.res_x, self.anchor.left.res_y)
-        if self.anchor.right:
-            print('RIGT->', self.anchor.right.res_x, self.anchor.right.res_y)
-        
+    def add_monitor(self, monitor):
+        self.monitors[monitor.id] = monitor
 
+    def get_monitor(self, id):
+        return self.monitors.get(id)
 
-    def add_panel(self, panel, direction = None):
-        if self.anchor is None:
-            print('is anchor')
-            # set monitor to anchor
-            self.anchor = panel
-
-        elif direction is not None:
-            print('has a direction')
-            # set monitor next to anchor
-            if direction == 'above':
-                self.anchor.above = panel
-            elif direction == 'below':
-                self.anchor.below = panel
-            elif direction == 'left':
-                self.anchor.left = panel
-            elif direction == 'right':
-                self.anchor.right = panel
-            else:
-                print('wat')
-
+    def connect_monitors(self, id1, direction1, id2, direction2):
+        node1 = self.get_monitor(id1)
+        node2 = self.get_monitor(id2)
+        if node1 and node2:
+            node1.link_monitor(node2, direction1)
+            node2.link_monitor(node1, direction2)
         else:
-            print('bruh')
+            raise ValueError("One or both nodes do not exist")
 
-        return
+    def get_connected_monitor(self, id, direction):
+        node = self.get_monitor(id)
+        if node:
+            return node.get_linked(direction)
+        else:
+            raise ValueError("Node does not exist in the graph.")
+    
+    def show_configuration(self):
+        for id, monitor in self.monitors.items():
+            print("\nmonitor: ", id, end=", \n")
+            for direction, connected_monitor in monitor.links.items():
+                if connected_monitor:
+                    print(direction, " : ", connected_monitor.id, end='     \n')
+
 
 
 def calculate_scale():
@@ -141,11 +142,14 @@ def main():
 
 # CODE STARTS HERE
 
-m1 = monitor(51, 30, 1920, 1200)
-m2 = monitor(51, 30, 1920, 1650)
+m1 = monitor(51, 30, 1920, 1200, 0)
+m2 = monitor(51, 30, 1920, 1650, 1)
+
 config = monitor_config()
 
-config.add_panel(m1)
-config.add_panel(m2, 'above')
+config.add_monitor(m1)
+config.add_monitor(m2)
 
-config.show_config()
+config.connect_monitors(0, 'right', 1, 'left')
+
+config.show_configuration()
