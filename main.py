@@ -17,6 +17,13 @@ class monitor():
         self.res_y = height_px
 
         print("new monitor created with id:", self.id)
+    
+    def find_density(self):
+        self.density_x = round(self.res_x/self.width, 3)
+        self.density_y = round(self.res_y/self.height, 3)
+
+        if self.density_x != self.density_y:
+            print('WARNING: monitor ', self.id, ' does not have 1:1 pixels, transformation may be biased')
 
     def link_monitor(self, monitor, direction):
         self.links[direction] = monitor
